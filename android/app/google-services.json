@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "964467465290",
+    "project_id": "fir-auth-663be",
+    "storage_bucket": "fir-auth-663be.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:964467465290:android:6705b98ce2a444ecaf1ab3",
+        "android_client_info": {
+          "package_name": "com.example.agroconnect"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC8rPo4KtRdOD37THR2DFWswNTuAdNahxY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
