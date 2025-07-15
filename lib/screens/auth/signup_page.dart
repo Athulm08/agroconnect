@@ -5,7 +5,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 // RENAMED WIDGET to SignupScreen
 class SignupScreen extends StatefulWidget {
-  const SignupScreen({super.key});
+  final String role;
+
+  const SignupScreen({super.key, required this.role});
 
   @override
   // RENAMED State to _SignupScreenState

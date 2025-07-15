@@ -1,7 +1,7 @@
-// lib/screens/auth/login_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:agroconnect/widgets/custom_button.dart'; // Import the CustomButton
+import 'package:agroconnect/utils/constants.dart';
 
 // RENAMED WIDGET to LoginScreen
 class LoginScreen extends StatefulWidget {
@@ -27,41 +27,51 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _login() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
+    // Check if the form is valid before proceeding
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
 
-      try {
-        await FirebaseAuth.instance.signInWithEmailAndPassword(
-          email: _emailController.text.trim(),
-          password: _passwordController.text.trim(),
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+
+      // After successful login, you should determine the user's role
+      // and navigate to the correct dashboard. For now, this navigates
+      // to a generic '/home' route.
+      // This logic will likely be moved to a wrapper widget that checks auth state.
+      if (mounted) {
+        // IMPORTANT: The original code used '/home'. You will need to replace this
+        // with logic that routes to Farmer or Consumer dashboard.
+        // For example: Navigator.of(context).pushReplacementNamed('/role-specific-dashboard');
+        // For now, let's assume a generic home or a splash screen handles this.
+        Navigator.of(context).pushReplacementNamed('/home');
+      }
+    } on FirebaseAuthException catch (e) {
+      String message;
+      if (e.code == 'user-not-found') {
+        message = 'No user found for that email.';
+      } else if (e.code == 'wrong-password') {
+        message = 'Wrong password provided for that user.';
+      } else {
+        message = 'An error occurred. Please try again.';
+      }
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message), backgroundColor: Colors.redAccent),
         );
-
-        if (mounted) {
-          // Navigate to home, route is defined in main.dart
-          Navigator.of(context).pushReplacementNamed('/home');
-        }
-      } on FirebaseAuthException catch (e) {
-        String message;
-        if (e.code == 'user-not-found') {
-          message = 'No user found for that email.';
-        } else if (e.code == 'wrong-password') {
-          message = 'Wrong password provided for that user.';
-        } else {
-          message = 'An error occurred. Please try again.';
-        }
-        if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(message)));
-        }
-      } finally {
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-          });
-        }
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
       }
     }
   }
@@ -69,10 +79,13 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Login')),
+      appBar: AppBar(
+        title: const Text('Login'),
+        backgroundColor: kPrimaryLightColor, // Matching theme
+      ),
       body: Center(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(24.0),
           child: Form(
             key: _formKey,
             child: Column(
@@ -81,16 +94,26 @@ class _LoginScreenState extends State<LoginScreen> {
               children: <Widget>[
                 const Text(
                   'Welcome Back!',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 8),
+                const Text(
+                  'Log in to continue to AgroConnect',
+                  style: TextStyle(fontSize: 16, color: Colors.black54),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 48),
                 TextFormField(
                   controller: _emailController,
                   decoration: const InputDecoration(
                     labelText: 'Email',
                     border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.email),
+                    prefixIcon: Icon(Icons.email_outlined),
                   ),
                   keyboardType: TextInputType.emailAddress,
                   validator: (value) {
@@ -103,19 +126,19 @@ class _LoginScreenState extends State<LoginScreen> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 20),
                 TextFormField(
                   controller: _passwordController,
                   obscureText: _obscurePassword,
                   decoration: InputDecoration(
                     labelText: 'Password',
                     border: const OutlineInputBorder(),
-                    prefixIcon: const Icon(Icons.lock),
+                    prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscurePassword
-                            ? Icons.visibility
-                            : Icons.visibility_off,
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined,
                       ),
                       onPressed: () {
                         setState(() {
@@ -131,26 +154,22 @@ class _LoginScreenState extends State<LoginScreen> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 32),
+                // --- IMPLEMENTATION OF CustomButton ---
                 _isLoading
                     ? const Center(child: CircularProgressIndicator())
-                    : ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        onPressed: _login,
-                        child: const Text('Login'),
+                    : CustomButton(
+                        text: 'Login',
+                        onPressed: _login, // Call the _login method
+                        icon: Icons.login, // Add the login icon
                       ),
                 const SizedBox(height: 16),
                 TextButton(
                   onPressed: () {
-                    // Navigate to the signup screen using its named route
-                    Navigator.of(context).pushNamed('/signup');
+                    // Navigate to the role selection screen first
+                    Navigator.of(context).pushNamed('/role-selection');
                   },
-                  child: const Text('Don\'t have an account? Sign up'),
+                  child: const Text('Don\'t have an account? Sign Up'),
                 ),
               ],
             ),
