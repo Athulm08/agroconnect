@@ -1,10 +1,14 @@
+// lib/main.dart
+
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'firebase_options.dart';
-import 'signup_page.dart';
-import 'home_screen.dart';
-import 'login_page.dart'; // Assuming you have a login page
+
+// THE CORRECT IMPORTS: Using the '_screen.dart' file names
+import 'screens/auth/signup_page.dart'; // Corrected Path
+import 'screens/home_screen.dart';
+import 'screens/auth/login_page.dart'; // Corrected Path
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,13 +22,16 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Firebase Auth',
-      theme: ThemeData(primarySwatch: Colors.blue),
+      title: 'AgroConnect',
+      theme: ThemeData(
+        primarySwatch: Colors.green,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+      ),
       home: const AuthGate(),
+      // THE CORRECT ROUTES: Using the '...Screen' class names
       routes: {
-        '/login': (context) =>
-            const LoginPage(), // Make sure you have a LoginPage
-        '/signup': (context) => const SignupPage(),
+        '/login': (context) => const LoginScreen(), // Corrected Class Name
+        '/signup': (context) => const SignupScreen(), // Corrected Class Name
         '/home': (context) => const HomeScreen(),
       },
     );
@@ -41,7 +48,7 @@ class AuthGate extends StatelessWidget {
       builder: (context, snapshot) {
         // User is not signed in
         if (!snapshot.hasData) {
-          return const LoginPage(); // Or SignupPage() if you want that as the initial screen
+          return const LoginScreen(); // Corrected Class Name
         }
 
         // User is signed in

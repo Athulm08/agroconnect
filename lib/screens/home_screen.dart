@@ -1,3 +1,5 @@
+// lib/screens/home_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -7,11 +9,10 @@ class HomeScreen extends StatelessWidget {
   Future<void> _signOut(BuildContext context) async {
     try {
       await FirebaseAuth.instance.signOut();
-      // CORRECTED: Added a 'mounted' check before using the context.
       if (!context.mounted) return;
+      // Navigate back to login
       Navigator.of(context).pushReplacementNamed('/login');
     } catch (e) {
-      // CORRECTED: Added a 'mounted' check here as well.
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error signing out: ${e.toString()}')),
@@ -25,11 +26,12 @@ class HomeScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Home'),
+        title: const Text('AgroConnect Home'),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () => _signOut(context),
+            tooltip: 'Sign Out',
           ),
         ],
       ),
@@ -47,6 +49,7 @@ class HomeScreen extends StatelessWidget {
                 'Signed in as: ${user.email}',
                 style: const TextStyle(fontSize: 16),
               ),
+            // You can start building your farmer/consumer UI here
           ],
         ),
       ),

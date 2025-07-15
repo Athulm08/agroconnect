@@ -1,53 +1,53 @@
+// lib/screens/auth/login_screen.dart
+
 import 'package:flutter/material.dart';
-// CORRECTED IMPORT: Replaced 'package.' with 'package:'
 import 'package:firebase_auth/firebase_auth.dart';
 
-class SignupPage extends StatefulWidget {
-  const SignupPage({super.key});
+// RENAMED WIDGET to LoginScreen
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
 
   @override
-  State<SignupPage> createState() => _SignupPageState();
+  // RENAMED State to _LoginScreenState
+  State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _SignupPageState extends State<SignupPage> {
+class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController();
   bool _isLoading = false;
   bool _obscurePassword = true;
-  bool _obscureConfirmPassword = true;
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
-    _confirmPasswordController.dispose();
     super.dispose();
   }
 
-  Future<void> _signUp() async {
+  Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;
       });
 
       try {
-        await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        await FirebaseAuth.instance.signInWithEmailAndPassword(
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
         );
 
-        // ADDED 'mounted' CHECK as a best practice
         if (mounted) {
+          // Navigate to home, route is defined in main.dart
           Navigator.of(context).pushReplacementNamed('/home');
         }
       } on FirebaseAuthException catch (e) {
         String message;
-        if (e.code == 'weak-password') {
-          message = 'The password provided is too weak.';
-        } else if (e.code == 'email-already-in-use') {
-          message = 'The account already exists for that email.';
+        if (e.code == 'user-not-found') {
+          message = 'No user found for that email.';
+        } else if (e.code == 'wrong-password') {
+          message = 'Wrong password provided for that user.';
         } else {
           message = 'An error occurred. Please try again.';
         }
@@ -55,14 +55,6 @@ class _SignupPageState extends State<SignupPage> {
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(SnackBar(content: Text(message)));
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('An unexpected error occurred: ${e.toString()}'),
-            ),
-          );
         }
       } finally {
         if (mounted) {
@@ -77,7 +69,7 @@ class _SignupPageState extends State<SignupPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Sign Up')),
+      appBar: AppBar(title: const Text('Login')),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),
@@ -88,7 +80,7 @@ class _SignupPageState extends State<SignupPage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
                 const Text(
-                  'Create an Account',
+                  'Welcome Back!',
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   textAlign: TextAlign.center,
                 ),
@@ -136,40 +128,6 @@ class _SignupPageState extends State<SignupPage> {
                     if (value == null || value.isEmpty) {
                       return 'Please enter your password';
                     }
-                    if (value.length < 6) {
-                      return 'Password must be at least 6 characters long';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _confirmPasswordController,
-                  obscureText: _obscureConfirmPassword,
-                  decoration: InputDecoration(
-                    labelText: 'Confirm Password',
-                    border: const OutlineInputBorder(),
-                    prefixIcon: const Icon(Icons.lock),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscureConfirmPassword
-                            ? Icons.visibility
-                            : Icons.visibility_off,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _obscureConfirmPassword = !_obscureConfirmPassword;
-                        });
-                      },
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please confirm your password';
-                    }
-                    if (value != _passwordController.text) {
-                      return 'Passwords do not match';
-                    }
                     return null;
                   },
                 ),
@@ -183,15 +141,16 @@ class _SignupPageState extends State<SignupPage> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        onPressed: _signUp,
-                        child: const Text('Sign Up'),
+                        onPressed: _login,
+                        child: const Text('Login'),
                       ),
                 const SizedBox(height: 16),
                 TextButton(
                   onPressed: () {
-                    Navigator.of(context).pushReplacementNamed('/login');
+                    // Navigate to the signup screen using its named route
+                    Navigator.of(context).pushNamed('/signup');
                   },
-                  child: const Text('Already have an account? Log in'),
+                  child: const Text('Don\'t have an account? Sign up'),
                 ),
               ],
             ),
