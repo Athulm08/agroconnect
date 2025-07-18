@@ -1,16 +1,13 @@
-// lib/screens/auth/signup_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
 
-// RENAMED WIDGET to SignupScreen
 class SignupScreen extends StatefulWidget {
   final String role;
 
   const SignupScreen({super.key, required this.role});
 
   @override
-  // RENAMED State to _SignupScreenState
   State<SignupScreen> createState() => _SignupScreenState();
 }
 
@@ -38,10 +35,18 @@ class _SignupScreenState extends State<SignupScreen> {
       });
 
       try {
-        await FirebaseAuth.instance.createUserWithEmailAndPassword(
-          email: _emailController.text.trim(),
-          password: _passwordController.text.trim(),
-        );
+        // Create user with email and password
+        UserCredential userCredential = await FirebaseAuth.instance
+            .createUserWithEmailAndPassword(
+              email: _emailController.text.trim(),
+              password: _passwordController.text.trim(),
+            );
+
+        // Store user role in Firestore
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userCredential.user!.uid)
+            .set({'email': _emailController.text.trim(), 'role': widget.role});
 
         if (mounted) {
           Navigator.of(context).pushReplacementNamed('/home');
@@ -80,8 +85,11 @@ class _SignupScreenState extends State<SignupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // ... existing build method
     return Scaffold(
-      appBar: AppBar(title: const Text('Sign Up')),
+      appBar: AppBar(
+        title: Text('Sign Up as a ${widget.role}'),
+      ), // Title can reflect the role
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),
