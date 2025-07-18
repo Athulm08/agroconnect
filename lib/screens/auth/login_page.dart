@@ -11,6 +11,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  // All state and methods remain unchanged
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -74,222 +75,219 @@ class _LoginScreenState extends State<LoginScreen> {
     final screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
-      // The background color is now applied to the container, not the Scaffold,
-      // to prevent the green screen flash if the layout fails.
       backgroundColor: kBackgroundColor,
       body: SingleChildScrollView(
-        child: Container(
-          height:
-              screenHeight, // Ensure the container takes up the full screen height
-          color: kPrimaryColor, // The green background is now here
-          child: Stack(
-            children: [
-              // --- HEADER SECTION (REMAINS THE SAME) ---
-              Positioned(
-                top: screenHeight * 0.1,
-                left: 0,
-                right: 0,
-                child: Column(
-                  children: [
-                    const Icon(Icons.grass, color: Colors.white, size: 90),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Hello!',
-                      style: kHeadingStyle.copyWith(color: Colors.white),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Welcome to AgroConnect',
-                      style: kSubheadingStyle.copyWith(
-                        color: Colors.white70,
-                        fontSize: 18,
-                      ),
-                    ),
-                  ],
-                ),
+        child: Stack(
+          children: [
+            Image.asset(
+              'assets/images/auth_background.png',
+              height: screenHeight,
+              width: double.infinity,
+              fit: BoxFit.cover,
+            ),
+            Container(
+              height: screenHeight,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                // --- FIX APPLIED HERE ---
+                // Replaced withOpacity with withAlpha for better performance and precision.
+                color: kPrimaryColor.withAlpha(217),
               ),
-
-              // --- LOGIN FORM SECTION ---
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: Container(
-                  // Use a fraction of the screen height to ensure it fits
-                  height: screenHeight * 0.68,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: kDefaultPadding * 1.5,
+            ),
+            Positioned(
+              top: screenHeight * 0.1,
+              left: 0,
+              right: 0,
+              child: Column(
+                children: [
+                  const Icon(Icons.grass, color: Colors.white, size: 90),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Hello!',
+                    style: kHeadingStyle.copyWith(color: Colors.white),
                   ),
-                  decoration: const BoxDecoration(
-                    color: kBackgroundColor,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(40.0),
-                      topRight: Radius.circular(40.0),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Welcome to AgroConnect',
+                    style: kSubheadingStyle.copyWith(
+                      color: Colors.white70,
+                      fontSize: 18,
                     ),
                   ),
-                  child: Form(
-                    key: _formKey,
-                    // --- REVISED COLUMN LAYOUT ---
-                    child: Column(
-                      // Use spaceAround to distribute vertical space evenly and robustly
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        const Text('Login', style: kSubheadingStyle),
-
-                        // --- INPUT FIELDS GROUP ---
-                        Column(
-                          children: [
-                            TextFormField(
-                              controller: _emailController,
-                              decoration: _buildInputDecoration(
-                                'Email',
-                                Icons.email_outlined,
-                              ),
-                              keyboardType: TextInputType.emailAddress,
-                              validator: (v) => (v == null || !v.contains('@'))
-                                  ? 'Enter a valid email'
-                                  : null,
+                ],
+              ),
+            ),
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                height: screenHeight * 0.68,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: kDefaultPadding * 1.5,
+                ),
+                decoration: const BoxDecoration(
+                  color: kBackgroundColor,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(40.0),
+                    topRight: Radius.circular(40.0),
+                  ),
+                ),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      // Form content remains the same
+                      const Text('Login', style: kSubheadingStyle),
+                      Column(
+                        children: [
+                          TextFormField(
+                            controller: _emailController,
+                            decoration: _buildInputDecoration(
+                              'Email',
+                              Icons.email_outlined,
                             ),
-                            const SizedBox(height: kDefaultPadding),
-                            TextFormField(
-                              controller: _passwordController,
-                              obscureText: _obscurePassword,
-                              decoration:
-                                  _buildInputDecoration(
-                                    'Password',
-                                    Icons.lock_outline,
-                                  ).copyWith(
-                                    suffixIcon: IconButton(
-                                      icon: Icon(
-                                        _obscurePassword
-                                            ? Icons.visibility_off
-                                            : Icons.visibility,
-                                        color: kPrimaryLightColor,
-                                      ),
-                                      onPressed: () => setState(
-                                        () => _obscurePassword =
-                                            !_obscurePassword,
-                                      ),
+                            keyboardType: TextInputType.emailAddress,
+                            validator: (v) => (v == null || !v.contains('@'))
+                                ? 'Enter a valid email'
+                                : null,
+                          ),
+                          const SizedBox(height: kDefaultPadding),
+                          TextFormField(
+                            controller: _passwordController,
+                            obscureText: _obscurePassword,
+                            decoration:
+                                _buildInputDecoration(
+                                  'Password',
+                                  Icons.lock_outline,
+                                ).copyWith(
+                                  suffixIcon: IconButton(
+                                    icon: Icon(
+                                      _obscurePassword
+                                          ? Icons.visibility_off
+                                          : Icons.visibility,
+                                      color: kPrimaryLightColor,
+                                    ),
+                                    onPressed: () => setState(
+                                      () =>
+                                          _obscurePassword = !_obscurePassword,
                                     ),
                                   ),
-                              validator: (v) => (v == null || v.length < 6)
-                                  ? 'Password is too short'
-                                  : null,
-                            ),
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: TextButton(
-                                onPressed: () => Navigator.of(
-                                  context,
-                                ).pushNamed('/forgot-password'),
-                                child: const Text(
-                                  'Forgot Password?',
-                                  style: TextStyle(color: kPrimaryColor),
                                 ),
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        // --- BUTTONS GROUP ---
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            _isLoading
-                                ? const Center(
-                                    child: CircularProgressIndicator(
-                                      color: kAccentColor,
-                                    ),
-                                  )
-                                : ElevatedButton(
-                                    onPressed: _login,
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: kPrimaryColor,
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: kDefaultPadding * 0.8,
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(
-                                          kDefaultRadius,
-                                        ),
-                                      ),
-                                    ),
-                                    child: const Text(
-                                      'Login',
-                                      style: kButtonTextStyle,
-                                    ),
-                                  ),
-                            const SizedBox(height: kDefaultPadding),
-                            _buildSocialLoginDivider(),
-                            const SizedBox(height: kDefaultPadding),
-                            _isGoogleLoading
-                                ? const Center(
-                                    child: CircularProgressIndicator(
-                                      color: kAccentColor,
-                                    ),
-                                  )
-                                : OutlinedButton.icon(
-                                    icon: Image.asset(
-                                      'assets/images/google_logo.png',
-                                      height: 24,
-                                      errorBuilder:
-                                          (context, error, stackTrace) =>
-                                              const Icon(Icons.login),
-                                    ),
-                                    label: const Text(
-                                      'Sign in with Google',
-                                      style: TextStyle(
-                                        color: kTextColor,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    onPressed: _signInWithGoogle,
-                                    style: OutlinedButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: kDefaultPadding * 0.8,
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(
-                                          kDefaultRadius,
-                                        ),
-                                      ),
-                                      side: const BorderSide(
-                                        color: kTextSecondaryColor,
-                                      ),
-                                    ),
-                                  ),
-                          ],
-                        ),
-
-                        // --- SIGN UP LINK ---
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Text(
-                              "Don't have an account?",
-                              style: kBodyTextStyle,
-                            ),
-                            TextButton(
+                            validator: (v) => (v == null || v.length < 6)
+                                ? 'Password is too short'
+                                : null,
+                          ),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton(
                               onPressed: () => Navigator.of(
                                 context,
-                              ).pushNamed('/role-selection'),
+                              ).pushNamed('/forgot-password'),
                               child: const Text(
-                                'Sign Up',
-                                style: TextStyle(
-                                  color: kAccentColor,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                                'Forgot Password?',
+                                style: TextStyle(color: kPrimaryColor),
                               ),
                             ),
-                          ],
-                        ),
-                      ],
-                    ),
+                          ),
+                        ],
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _isLoading
+                              ? const Center(
+                                  child: CircularProgressIndicator(
+                                    color: kAccentColor,
+                                  ),
+                                )
+                              : ElevatedButton(
+                                  onPressed: _login,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: kPrimaryColor,
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: kDefaultPadding * 0.8,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(
+                                        kDefaultRadius,
+                                      ),
+                                    ),
+                                  ),
+                                  child: const Text(
+                                    'Login',
+                                    style: kButtonTextStyle,
+                                  ),
+                                ),
+                          const SizedBox(height: kDefaultPadding),
+                          _buildSocialLoginDivider(),
+                          const SizedBox(height: kDefaultPadding),
+                          _isGoogleLoading
+                              ? const Center(
+                                  child: CircularProgressIndicator(
+                                    color: kAccentColor,
+                                  ),
+                                )
+                              : OutlinedButton.icon(
+                                  icon: Image.asset(
+                                    'assets/images/google_logo.png',
+                                    height: 24,
+                                    errorBuilder:
+                                        (context, error, stackTrace) =>
+                                            const Icon(Icons.login),
+                                  ),
+                                  label: const Text(
+                                    'Sign in with Google',
+                                    style: TextStyle(
+                                      color: kTextColor,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  onPressed: _signInWithGoogle,
+                                  style: OutlinedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: kDefaultPadding * 0.8,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(
+                                        kDefaultRadius,
+                                      ),
+                                    ),
+                                    side: const BorderSide(
+                                      color: kTextSecondaryColor,
+                                    ),
+                                  ),
+                                ),
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text(
+                            "Don't have an account?",
+                            style: kBodyTextStyle,
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.of(
+                              context,
+                            ).pushNamed('/role-selection'),
+                            child: const Text(
+                              'Sign Up',
+                              style: TextStyle(
+                                color: kAccentColor,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
