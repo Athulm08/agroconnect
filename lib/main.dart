@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart'; // <-- Import foundation for debugPrint
+import 'package:flutter/foundation.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -9,6 +9,7 @@ import 'firebase_options.dart';
 import 'package:agroconnect/utils/constants.dart';
 
 // --- Import all the screens that will be used in navigation ---
+import 'package:agroconnect/screens/welcome_screen.dart'; // <-- IMPORT THE NEW WELCOME SCREEN
 import 'package:agroconnect/screens/auth/login_page.dart';
 import 'package:agroconnect/screens/auth/role_selection.dart';
 import 'package:agroconnect/screens/auth/signup_page.dart';
@@ -43,8 +44,14 @@ class MyApp extends StatelessWidget {
           style: TextButton.styleFrom(foregroundColor: kPrimaryColor),
         ),
       ),
-      home: const AuthGate(),
+
+      // --- STARTUP ROUTE ---
+      // Show the WelcomeScreen when the app first starts.
+      home: const WelcomeScreen(), // <-- SET WELCOME SCREEN AS HOME
+      // --- NAMED ROUTES ---
       routes: {
+        // Add a route for AuthGate, which will be navigated to from WelcomeScreen
+        '/auth': (context) => const AuthGate(), // <-- NEW ROUTE FOR AUTH LOGIC
         '/login': (context) => const LoginScreen(),
         '/role-selection': (context) => const RoleSelectionScreen(),
         '/register': (context) => const SignupScreen(role: 'consumer'),
@@ -56,6 +63,8 @@ class MyApp extends StatelessWidget {
   }
 }
 
+// --- AUTHENTICATION GATE ---
+// (This widget remains the same as before)
 class AuthGate extends StatelessWidget {
   const AuthGate({super.key});
 
@@ -76,6 +85,8 @@ class AuthGate extends StatelessWidget {
   }
 }
 
+// --- ROLE-BASED REDIRECTION WIDGET ---
+// (This widget remains the same as before)
 class RoleBasedRedirect extends StatelessWidget {
   const RoleBasedRedirect({super.key});
 
@@ -89,10 +100,7 @@ class RoleBasedRedirect extends StatelessWidget {
         return docSnapshot.get('role');
       }
     } catch (e) {
-      // --- FIX: Replaced 'print' with 'debugPrint' ---
-      // This is the recommended way to log errors during development.
       if (kDebugMode) {
-        // kDebugMode ensures this only runs in debug build
         debugPrint('Error fetching user role: $e');
       }
     }
