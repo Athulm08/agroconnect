@@ -64,7 +64,6 @@ const String usersCollection = 'users';
 const String productsCollection = 'products';
 const String ordersCollection = 'orders';
 
-
 // --- ASSET PATHS (Example) ---
 // If you had local assets like a logo or placeholder images, you would define their paths here.
 // const String kLogoPath = 'assets/images/agroconnect_logo.png';

@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:agroconnect/widgets/custom_button.dart'; // Import the CustomButton
+import 'package:agroconnect/services/auth_service.dart';
 import 'package:agroconnect/utils/constants.dart';
 
-// RENAMED WIDGET to LoginScreen
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  // RENAMED State to _LoginScreenState
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
@@ -16,7 +14,9 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final AuthService _authService = AuthService();
   bool _isLoading = false;
+  bool _isGoogleLoading = false;
   bool _obscurePassword = true;
 
   @override
@@ -27,165 +27,298 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _login() async {
-    // Check if the form is valid before proceeding
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
-
-    setState(() {
-      _isLoading = true;
-    });
-
+    if (!_formKey.currentState!.validate()) return;
+    setState(() => _isLoading = true);
     try {
       await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
-
-      // After successful login, you should determine the user's role
-      // and navigate to the correct dashboard. For now, this navigates
-      // to a generic '/home' route.
-      // This logic will likely be moved to a wrapper widget that checks auth state.
-      if (mounted) {
-        // IMPORTANT: The original code used '/home'. You will need to replace this
-        // with logic that routes to Farmer or Consumer dashboard.
-        // For example: Navigator.of(context).pushReplacementNamed('/role-specific-dashboard');
-        // For now, let's assume a generic home or a splash screen handles this.
-        Navigator.of(context).pushReplacementNamed('/home');
-      }
+      if (mounted) Navigator.of(context).pushReplacementNamed('/auth');
     } on FirebaseAuthException catch (e) {
-      String message;
-      if (e.code == 'user-not-found') {
-        message = 'No user found for that email.';
-      } else if (e.code == 'wrong-password') {
-        message = 'Wrong password provided for that user.';
-      } else {
-        message = 'An error occurred. Please try again.';
-      }
+      debugPrint('Email/Password login failed: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(message), backgroundColor: Colors.redAccent),
+          const SnackBar(
+            content: Text('Incorrect email or password.'),
+            backgroundColor: kErrorColor,
+          ),
         );
       }
     } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _signInWithGoogle() async {
+    setState(() => _isGoogleLoading = true);
+    try {
+      final userCredential = await _authService.signInWithGoogle();
+      if (userCredential != null && mounted) {
+        Navigator.of(context).pushReplacementNamed('/auth');
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Google sign-in failed. Please try again.'),
+            backgroundColor: kErrorColor,
+          ),
+        );
       }
+    } finally {
+      if (mounted) setState(() => _isGoogleLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Login'),
-        backgroundColor: kPrimaryLightColor, // Matching theme
-      ),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                const Text(
-                  'Welcome Back!',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Log in to continue to AgroConnect',
-                  style: TextStyle(fontSize: 16, color: Colors.black54),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 48),
-                TextFormField(
-                  controller: _emailController,
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.email_outlined),
-                  ),
-                  keyboardType: TextInputType.emailAddress,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your email';
-                    }
-                    if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
-                      return 'Please enter a valid email address';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 20),
-                TextFormField(
-                  controller: _passwordController,
-                  obscureText: _obscurePassword,
-                  decoration: InputDecoration(
-                    labelText: 'Password',
-                    border: const OutlineInputBorder(),
-                    prefixIcon: const Icon(Icons.lock_outline),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscurePassword
-                            ? Icons.visibility_outlined
-                            : Icons.visibility_off_outlined,
+      // The background color is now applied to the container, not the Scaffold,
+      // to prevent the green screen flash if the layout fails.
+      backgroundColor: kBackgroundColor,
+      body: SingleChildScrollView(
+        child: Container(
+          height:
+              screenHeight, // Ensure the container takes up the full screen height
+          color: kPrimaryColor, // The green background is now here
+          child: Stack(
+            children: [
+              // --- HEADER SECTION (REMAINS THE SAME) ---
+              Positioned(
+                top: screenHeight * 0.1,
+                left: 0,
+                right: 0,
+                child: Column(
+                  children: [
+                    const Icon(Icons.grass, color: Colors.white, size: 90),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Hello!',
+                      style: kHeadingStyle.copyWith(color: Colors.white),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Welcome to AgroConnect',
+                      style: kSubheadingStyle.copyWith(
+                        color: Colors.white70,
+                        fontSize: 18,
                       ),
-                      onPressed: () {
-                        setState(() {
-                          _obscurePassword = !_obscurePassword;
-                        });
-                      },
+                    ),
+                  ],
+                ),
+              ),
+
+              // --- LOGIN FORM SECTION ---
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: Container(
+                  // Use a fraction of the screen height to ensure it fits
+                  height: screenHeight * 0.68,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: kDefaultPadding * 1.5,
+                  ),
+                  decoration: const BoxDecoration(
+                    color: kBackgroundColor,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(40.0),
+                      topRight: Radius.circular(40.0),
                     ),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your password';
-                    }
-                    return null;
-                  },
-                ),
-                // --- NEW FORGOT PASSWORD BUTTON ---
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pushNamed('/forgot-password');
-                    },
-                    child: const Text('Forgot Password?'),
+                  child: Form(
+                    key: _formKey,
+                    // --- REVISED COLUMN LAYOUT ---
+                    child: Column(
+                      // Use spaceAround to distribute vertical space evenly and robustly
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        const Text('Login', style: kSubheadingStyle),
+
+                        // --- INPUT FIELDS GROUP ---
+                        Column(
+                          children: [
+                            TextFormField(
+                              controller: _emailController,
+                              decoration: _buildInputDecoration(
+                                'Email',
+                                Icons.email_outlined,
+                              ),
+                              keyboardType: TextInputType.emailAddress,
+                              validator: (v) => (v == null || !v.contains('@'))
+                                  ? 'Enter a valid email'
+                                  : null,
+                            ),
+                            const SizedBox(height: kDefaultPadding),
+                            TextFormField(
+                              controller: _passwordController,
+                              obscureText: _obscurePassword,
+                              decoration:
+                                  _buildInputDecoration(
+                                    'Password',
+                                    Icons.lock_outline,
+                                  ).copyWith(
+                                    suffixIcon: IconButton(
+                                      icon: Icon(
+                                        _obscurePassword
+                                            ? Icons.visibility_off
+                                            : Icons.visibility,
+                                        color: kPrimaryLightColor,
+                                      ),
+                                      onPressed: () => setState(
+                                        () => _obscurePassword =
+                                            !_obscurePassword,
+                                      ),
+                                    ),
+                                  ),
+                              validator: (v) => (v == null || v.length < 6)
+                                  ? 'Password is too short'
+                                  : null,
+                            ),
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: TextButton(
+                                onPressed: () => Navigator.of(
+                                  context,
+                                ).pushNamed('/forgot-password'),
+                                child: const Text(
+                                  'Forgot Password?',
+                                  style: TextStyle(color: kPrimaryColor),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        // --- BUTTONS GROUP ---
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _isLoading
+                                ? const Center(
+                                    child: CircularProgressIndicator(
+                                      color: kAccentColor,
+                                    ),
+                                  )
+                                : ElevatedButton(
+                                    onPressed: _login,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: kPrimaryColor,
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: kDefaultPadding * 0.8,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(
+                                          kDefaultRadius,
+                                        ),
+                                      ),
+                                    ),
+                                    child: const Text(
+                                      'Login',
+                                      style: kButtonTextStyle,
+                                    ),
+                                  ),
+                            const SizedBox(height: kDefaultPadding),
+                            _buildSocialLoginDivider(),
+                            const SizedBox(height: kDefaultPadding),
+                            _isGoogleLoading
+                                ? const Center(
+                                    child: CircularProgressIndicator(
+                                      color: kAccentColor,
+                                    ),
+                                  )
+                                : OutlinedButton.icon(
+                                    icon: Image.asset(
+                                      'assets/images/google_logo.png',
+                                      height: 24,
+                                      errorBuilder:
+                                          (context, error, stackTrace) =>
+                                              const Icon(Icons.login),
+                                    ),
+                                    label: const Text(
+                                      'Sign in with Google',
+                                      style: TextStyle(
+                                        color: kTextColor,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    onPressed: _signInWithGoogle,
+                                    style: OutlinedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: kDefaultPadding * 0.8,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(
+                                          kDefaultRadius,
+                                        ),
+                                      ),
+                                      side: const BorderSide(
+                                        color: kTextSecondaryColor,
+                                      ),
+                                    ),
+                                  ),
+                          ],
+                        ),
+
+                        // --- SIGN UP LINK ---
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text(
+                              "Don't have an account?",
+                              style: kBodyTextStyle,
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.of(
+                                context,
+                              ).pushNamed('/role-selection'),
+                              child: const Text(
+                                'Sign Up',
+                                style: TextStyle(
+                                  color: kAccentColor,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-                const SizedBox(height: 16),
-                // --- IMPLEMENTATION OF CustomButton ---
-                _isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : CustomButton(
-                        text: 'Login',
-                        onPressed: _login, // Call the _login method
-                        icon: Icons.login, // Add the login icon
-                      ),
-                const SizedBox(height: 16),
-                TextButton(
-                  onPressed: () {
-                    // Navigate to the role selection screen first
-                    Navigator.of(context).pushNamed('/role-selection');
-                  },
-                  child: const Text('Don\'t have an account? Sign Up'),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
+    );
+  }
+
+  // Helper widgets remain unchanged
+  InputDecoration _buildInputDecoration(String label, IconData icon) {
+    return InputDecoration(
+      hintText: label,
+      prefixIcon: Icon(icon, color: kPrimaryLightColor),
+      filled: true,
+      fillColor: Colors.white,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(kDefaultRadius),
+        borderSide: BorderSide.none,
+      ),
+    );
+  }
+
+  Widget _buildSocialLoginDivider() {
+    return const Row(
+      children: [
+        Expanded(child: Divider(color: Colors.black26)),
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 8.0),
+          child: Text('Or', style: TextStyle(color: kTextSecondaryColor)),
+        ),
+        Expanded(child: Divider(color: Colors.black26)),
+      ],
     );
   }
 }
