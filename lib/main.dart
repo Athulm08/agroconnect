@@ -16,6 +16,7 @@ import 'package:agroconnect/screens/auth/signup_page.dart';
 import 'package:agroconnect/screens/consumer_dashboard.dart';
 import 'package:agroconnect/screens/farmer_dashboard.dart';
 import 'package:agroconnect/screens/home_screen.dart';
+import 'package:agroconnect/screens/auth/forgot_password_screen.dart'; // <-- IMPORT THE NEW FORGOT PASSWORD SCREEN
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -58,6 +59,8 @@ class MyApp extends StatelessWidget {
         '/home': (context) => const HomeScreen(),
         '/farmer-dashboard': (context) => const FarmerDashboard(),
         '/consumer-dashboard': (context) => const ConsumerDashboard(),
+        '/forgot-password': (context) =>
+            const ForgotPasswordScreen(), // <-- ADD THE NEW ROUTE
       },
     );
   }

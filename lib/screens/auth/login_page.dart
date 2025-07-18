@@ -154,7 +154,17 @@ class _LoginScreenState extends State<LoginScreen> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 32),
+                // --- NEW FORGOT PASSWORD BUTTON ---
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pushNamed('/forgot-password');
+                    },
+                    child: const Text('Forgot Password?'),
+                  ),
+                ),
+                const SizedBox(height: 16),
                 // --- IMPLEMENTATION OF CustomButton ---
                 _isLoading
                     ? const Center(child: CircularProgressIndicator())
