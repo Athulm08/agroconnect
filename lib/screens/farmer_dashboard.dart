@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:agroconnect/utils/constants.dart';
 
 // Import the pages for the dashboard tabs
-import 'package:agroconnect/screens/farmer/orders_page.dart';
 import 'package:agroconnect/screens/farmer/products_page.dart';
+import 'package:agroconnect/screens/farmer/orders_page.dart';
 import 'package:agroconnect/screens/farmer/saved_page.dart';
-import 'package:agroconnect/screens/farmer/settings_page.dart';
+// --- CHANGE 1: Import the new FarmerProfilePage ---
+import 'package:agroconnect/screens/farmer/farmer_profile_page.dart';
 
 // Import the page for adding a new product
 import 'package:agroconnect/screens/farmer/add_product_page.dart';
@@ -18,20 +19,16 @@ class FarmerDashboard extends StatefulWidget {
 }
 
 class _FarmerDashboardState extends State<FarmerDashboard> {
-  // --- CHANGE 1: Set the default index to 0 ---
-  // This makes the first item in the list the default page.
   int _selectedIndex = 0;
 
-  // --- CHANGE 2: Reorder the list of pages ---
-  // ProductsPage is now at index 0 and OrdersPage is at index 1.
+  // --- CHANGE 2: Replace SettingsPage with FarmerProfilePage ---
   static const List<Widget> _pages = <Widget>[
-    ProductsPage(), // Corresponds to index 0
-    OrdersPage(), // Corresponds to index 1
-    SavedPage(), // Corresponds to index 2
-    SettingsPage(), // Corresponds to index 3
+    ProductsPage(), // Index 0
+    OrdersPage(), // Index 1
+    SavedPage(), // Index 2
+    FarmerProfilePage(), // Index 3 (The new profile page)
   ];
 
-  /// Changes the selected page index when a navigation item is tapped.
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
@@ -41,40 +38,30 @@ class _FarmerDashboardState extends State<FarmerDashboard> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // The body displays the widget from the _pages list at the current index.
       body: _pages.elementAt(_selectedIndex),
-
-      // The central floating action button for adding new products.
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Navigate to the Add Product screen when the button is pressed.
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const AddProductPage()),
           );
         },
         backgroundColor: kPrimaryColor,
-        shape: const CircleBorder(), // Makes the button perfectly round.
+        shape: const CircleBorder(),
         child: const Icon(Icons.add_shopping_cart, color: Colors.white),
       ),
-
-      // Docks the floating action button in the center of the bottom app bar.
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-
-      // The custom bottom navigation bar.
       bottomNavigationBar: BottomAppBar(
         color: Colors.white,
-        shape:
-            const CircularNotchedRectangle(), // Creates the "notch" for the FAB.
-        notchMargin: 8.0, // Sets the space around the notch.
-        elevation: 8.0, // Adds a subtle shadow.
+        shape: const CircularNotchedRectangle(),
+        notchMargin: 8.0,
+        elevation: 8.0,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 10.0),
           child: Row(
-            // Distributes the icons evenly.
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              // --- CHANGE 3: Swap the navigation items to match the new order ---
+              // --- CHANGE 3: The label for the last icon is now "Profile" ---
               _buildNavItem(
                 icon: Icons.grass_outlined,
                 index: 0,
@@ -85,21 +72,17 @@ class _FarmerDashboardState extends State<FarmerDashboard> {
                 index: 1,
                 label: 'Orders',
               ),
-
-              // This SizedBox creates the gap in the middle for the notch.
               const SizedBox(width: 40),
-
-              // Right side items remain the same.
               _buildNavItem(
                 icon: Icons.bookmark_border,
                 index: 2,
                 label: 'Saved',
               ),
               _buildNavItem(
-                icon: Icons.settings_outlined,
+                icon: Icons.person_outline,
                 index: 3,
-                label: 'Settings',
-              ),
+                label: 'Profile',
+              ), // Updated icon and label
             ],
           ),
         ),
@@ -107,8 +90,6 @@ class _FarmerDashboardState extends State<FarmerDashboard> {
     );
   }
 
-  /// A helper widget to build each navigation item to avoid code repetition.
-  /// Includes the icon and the small indicator dot.
   Widget _buildNavItem({
     required IconData icon,
     required int index,
@@ -117,22 +98,19 @@ class _FarmerDashboardState extends State<FarmerDashboard> {
     final bool isSelected = _selectedIndex == index;
     return InkWell(
       onTap: () => _onItemTapped(index),
-      borderRadius: BorderRadius.circular(
-        20,
-      ), // Makes the ripple effect circular.
+      borderRadius: BorderRadius.circular(20),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
         child: Column(
-          mainAxisSize: MainAxisSize.min, // Takes up minimum vertical space.
+          mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               icon,
-              // The color changes based on whether the item is selected.
               color: isSelected ? kPrimaryColor : kTextSecondaryColor,
               size: 26,
             ),
             const SizedBox(height: 4),
-            // The small indicator dot is only shown if the item is selected.
+            // The indicator dot logic remains the same
             if (isSelected)
               Container(
                 height: 5,
@@ -143,7 +121,6 @@ class _FarmerDashboardState extends State<FarmerDashboard> {
                 ),
               )
             else
-              // Add an empty SizedBox to maintain layout consistency.
               const SizedBox(height: 5),
           ],
         ),
